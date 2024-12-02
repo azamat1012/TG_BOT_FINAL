@@ -43,7 +43,7 @@ source env/bin/activate
 5. Перейдите в директорию проект - BOT_PROJECT 
 
 ```bash
-cd путь/к/BOT_PROJECT
+cd путь/к/TG_BOT_FINAL
 ```
 
 6. Сделайте миграции
