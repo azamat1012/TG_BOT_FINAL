@@ -1,35 +1,29 @@
-import logging
-from telebot import TeleBot
-import django
-import sys
 import os
+import sys
+import django
+from telebot import TeleBot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 
+# Найстройка Джанго
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bot_backend.settings")
 django.setup()
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 try:
     from event_planner.models import Speaker, Question, User, Organizer
     from event_planner.utils import get_schedule, get_user_role, remove_expired_speakers
     from event_planner.helpers import create_inline_keyboard, create_reply_keyboard, is_ask_question_command, is_about_command, is_sent_donat, is_speaker_selected, is_speaker_selected_state, is_view_questions_command, user_states
 except Exception as e:
-    logger.error(f"Error importing models: {e}")
+    print(f"Error importing models: {e}")
+
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = TeleBot(TELEGRAM_BOT_TOKEN)
 
 
 def main():
-    
-    logger.info("Bot main function started.")
-
     @bot.message_handler(commands=['start'])
     def start(message):
-        logger.info(f"""Start command received from {
-                    message.chat.id}""")  # Log received command
         tg_id = str(message.chat.id)
         username = message.from_user.username
         try:
@@ -43,18 +37,17 @@ def main():
             )
             user.role = get_user_role(tg_id, username) or 'listener'
             user.save()
+
             keyboard = create_reply_keyboard(user.role)
             role_name = 'Докладчик' if user.role == 'speaker' else 'Слушатель'
+
             bot.send_message(
                 message.chat.id,
-                f"""Добро пожаловать, {user.first_name}!\nСейчас Вы - {role_name}  ＼(＾▽＾)／
-                    \nДанный бот отвечает за взаимодействие между Докладчиком и Слушателем\n\n               ---------Функциональные возможности--------- \n\n🎤:\nДокладчик может просматривать вопросы, которые
-                    он получил от Слушателей.\n🧏‍♂️:\nСлушатель может задавать вопросы выступающему Спикеру, посмореть программу мероприятия и при желании задонатить💸. \n\nПользуйтесь кнопками ниже))\n(Спойлер: это удобно)
-                    """,
+                f"""Добро пожаловать, {user.first_name}!\nСейчас Вы - {role_name}
+                    \n ＼(＾▽＾)／\nПользуйтесь кнопками ниже))\n(Спойлер: это удобно)""",
                 reply_markup=keyboard
             )
         except Exception as e:
-            logger.error(f"Error in start command: {e}")
             bot.send_message(message.chat.id, f"Ошибка при идентификации: {e}")
 
     @bot.message_handler(func=is_about_command)
@@ -167,8 +160,8 @@ def main():
 
             bot.send_message(
                 message.chat.id,
-                f"""Спасибо за вашу поддержку!૮ ˶ᵔ ᵕ ᵔ˶ ა\nВы можете отправить донат по следующему реквизитам карты:\n{
-                    speaker.card_num}"""
+                f"Спасибо за вашу поддержку!૮ ˶ᵔ ᵕ ᵔ˶ ა\nВы можете отправить донат по следующему реквизитам карты:\n{
+                    speaker.card_num}"
             )
 
         except Exception as e:
@@ -181,10 +174,9 @@ def main():
                 message.chat.id,
                 "Извините, информация о спикере не найдена.{{ (>_<) }}"
             )
-    logger.info("Bot is polling...")  
-    bot.polling(non_stop=True, interval=0)  
 
 
 if __name__ == "__main__":
-    logger.info("Bot script started.")  
-    main()  
+    main()
+    print("Бот запущен")
+    bot.polling()
